@@ -36,6 +36,15 @@ pipeline {
     }
   }
 
+  stage('Deploy to Nexus') {
+    steps {
+        withMaven(maven: 'Maven-3.9.11') {
+            sh 'mvn clean deploy -DskipTests'
+        }
+    }
+}
+
+
  post {
   success {
     slackSend (
