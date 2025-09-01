@@ -1,14 +1,10 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'Maven-3.9.11'   // Jenkins Maven installation name
-        jdk 'JDK-17'           // Jenkins JDK installation name
-    }
-
     environment {
         SONARQUBE = 'SonarQube'
         SLACK_CHANNEL = '#jenkins-integration'
+        PATH = "/usr/lib/jvm/java-17-openjdk/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
     }
 
     stages {
@@ -20,9 +16,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                withMaven(maven: 'Maven-3.9.11') {
-                    sh 'mvn clean package -DskipTests'
-                }
+                sh 'mvn clean package -DskipTests'
             }
         }
 
@@ -44,9 +38,7 @@ pipeline {
 
         stage('Deploy to Nexus') {
             steps {
-                withMaven(maven: 'Maven-3.9.11') {
-                    sh 'mvn clean deploy -DskipTests'
-                }
+                sh 'mvn clean deploy -DskipTests'
             }
         }
     }
