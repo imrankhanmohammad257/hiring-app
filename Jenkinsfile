@@ -1,64 +1,65 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    MAVEN_HOME = tool 'Maven-3.9.11'
-  }
-
-  options { timestamps() }
-
-  stages {
-    stage('Checkout') {
-      steps {
-        git branch: 'main', url: 'https://github.com/imrankhanmohammad257/hiring-app.git'
-      }
+    tools {
+        maven 'Maven-3.9.11'   // Jenkins Maven installation name
+        jdk 'JDK-17'           // Jenkins JDK installation name
     }
 
-    stage('Build & SonarQube Analysis') {
-      steps {
-        withSonarQubeEnv('SonarQube') {
-          sh "${MAVEN_HOME}/bin/mvn -B clean verify sonar:sonar"
+    environment {
+        SONARQUBE = 'SonarQube'
+        SLACK_CHANNEL = '#jenkins-integration'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/imrankhanmohammad257/hiring-app.git'
+            }
         }
-      }
+
+        stage('Build') {
+            steps {
+                withMaven(maven: 'Maven-3.9.11') {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh 'mvn sonar:sonar'
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Deploy to Nexus') {
+            steps {
+                withMaven(maven: 'Maven-3.9.11') {
+                    sh 'mvn clean deploy -DskipTests'
+                }
+            }
+        }
     }
 
-   
-
-    stage('Package') {
-      steps {
-        sh "${MAVEN_HOME}/bin/mvn -B -DskipTests package"
-      }
-      post {
+    post {
         success {
-          archiveArtifacts artifacts: 'target/*.war', fingerprint: true
+            slackSend(channel: env.SLACK_CHANNEL, color: 'good', message: "✅ Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' succeeded. Build URL: ${env.BUILD_URL}")
         }
-      }
-    }
-  }
-
-  stage('Deploy to Nexus') {
-    steps {
-        withMaven(maven: 'Maven-3.9.11') {
-            sh 'mvn clean deploy -DskipTests'
+        failure {
+            slackSend(channel: env.SLACK_CHANNEL, color: 'danger', message: "❌ Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' failed. Build URL: ${env.BUILD_URL}")
+        }
+        always {
+            echo "Pipeline finished"
         }
     }
-}
-
-
- post {
-  success {
-    slackSend (
-      channel: '#jenkins-integration',
-      message: "✅ Build #${env.BUILD_NUMBER} succeeded: ${env.BUILD_URL} (by Imran Khan)"
-    )
-  }
-  failure {
-    slackSend (
-      channel: '#jenkins-integration',
-      message: "❌ Build #${env.BUILD_NUMBER} failed: ${env.BUILD_URL} (by Imran Khan)"
-    )
-  }
-}
-
-  
 }
