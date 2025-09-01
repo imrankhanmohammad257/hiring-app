@@ -29,11 +29,11 @@
   <distributionManagement>
     <repository>
         <id>nexus-releases</id>
-        <url>http://<NEXUS_EC2_PUBLIC_IP>:8081/repository/releases/</url>
+        <url>http://54.235.8.206:8081/repository/releases/</url>
     </repository>
     <snapshotRepository>
         <id>nexus-snapshots</id>
-        <url>http://<NEXUS_EC2_PUBLIC_IP>:8081/repository/snapshots/</url>
+        <url>http://54.235.8.206:8081/repository/snapshots/</url>
     </snapshotRepository>
 </distributionManagement>
 
