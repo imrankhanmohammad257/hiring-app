@@ -14,11 +14,15 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                sh 'mvn clean package -DskipTests'
-            }
+      stage('Build') {
+    steps {
+        script {
+            def mvnHome = tool name: 'Maven-3.9.6', type: 'maven'
+            sh "${mvnHome}/bin/mvn clean package -DskipTests"
         }
+    }
+}
+
 
         stage('SonarQube Analysis') {
             steps {
