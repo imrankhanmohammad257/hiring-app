@@ -42,8 +42,5 @@ pipeline {
     }
   }
 
-  post {
-    success { slackSend message: "✅ Build #${env.BUILD_NUMBER} succeeded: ${env.BUILD_URL}" }
-    failure { slackSend message: "❌ Build #${env.BUILD_NUMBER} failed: ${env.BUILD_URL}" }
-  }
+  
 }
