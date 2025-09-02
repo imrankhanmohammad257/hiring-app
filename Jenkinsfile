@@ -11,31 +11,32 @@ node {
 
     stage('SonarQube Analysis') {
         withSonarQubeEnv('SonarQube') {
-            sh 'mvn sonar:sonar'
+            sh "${mvnHome}/bin/mvn sonar:sonar -DskipTests"
         }
     }
 
-  stage('Deploy to Nexus') {
-    steps {
-        withCredentials([usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+    stage('Deploy to Nexus') {
+        withCredentials([usernamePassword(credentialsId: 'nexus-creds',
+                                         usernameVariable: 'NEXUS_USER',
+                                         passwordVariable: 'NEXUS_PASS')]) {
             sh '''
-            # Update Maven settings.xml with creds
-            sed -i "s|<username>.*</username>|<username>$NEXUS_USER</username>|" /var/lib/jenkins/.m2/settings.xml
-            sed -i "s|<password>.*</password>|<password>$NEXUS_PASS</password>|" /var/lib/jenkins/.m2/settings.xml
+                # Ensure Maven settings.xml contains credentials
+                sed -i "s|<username>.*</username>|<username>$NEXUS_USER</username>|" /var/lib/jenkins/.m2/settings.xml
+                sed -i "s|<password>.*</password>|<password>$NEXUS_PASS</password>|" /var/lib/jenkins/.m2/settings.xml
 
-            mvn clean deploy -DskipTests --settings /var/lib/jenkins/.m2/settings.xml
+                mvn clean deploy -DskipTests --settings /var/lib/jenkins/.m2/settings.xml
             '''
         }
     }
-}
-
 
     stage('Deploy to Tomcat') {
-        withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', usernameVariable: 'TOMCAT_USER', passwordVariable: 'TOMCAT_PASS')]) {
+        withCredentials([usernamePassword(credentialsId: 'tomcat-credentials',
+                                         usernameVariable: 'TOMCAT_USER',
+                                         passwordVariable: 'TOMCAT_PASS')]) {
             sh '''
-            curl -u $TOMCAT_USER:$TOMCAT_PASS \
-                 -T target/hiring.war \
-                 http://54.145.142.96:8080/manager/text/deploy?path=/hiring&update=true
+                curl -u $TOMCAT_USER:$TOMCAT_PASS \
+                     -T target/hiring.war \
+                     "http://54.145.142.96:8080/manager/text/deploy?path=/hiring&update=true"
             '''
         }
     }
@@ -44,7 +45,7 @@ node {
         slackSend(
             channel: '#jenkins-integration',
             color: 'good',
-            message: "Hi Team, Jenkins Scripted pipeline job for *hiring-app* has finished successfully! ✅\nDeployed by: Imran Khan"
+            message: "Hi Team, Jenkins Scripted pipeline job for *hiring-app* finished successfully! ✅\nDeployed by: Imran Khan"
         )
     }
 }
