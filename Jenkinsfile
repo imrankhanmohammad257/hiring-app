@@ -17,15 +17,15 @@ node {
     }
 
     stage('Deploy to Nexus') {
-        def mvnHome = tool name: 'Maven-3.8.4', type: 'maven'
-        withCredentials([usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-            sh """
-            sed -i "s|<username>.*</username>|<username>\$NEXUS_USER</username>|" /var/lib/jenkins/.m2/settings.xml
-            sed -i "s|<password>.*</password>|<password>\$NEXUS_PASS</password>|" /var/lib/jenkins/.m2/settings.xml
-            ${mvnHome}/bin/mvn clean deploy -DskipTests --settings /var/lib/jenkins/.m2/settings.xml
-            """
-        }
+    withCredentials([usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+        sh """
+        mvn clean deploy -DskipTests \
+          -Dnexus.username=$NEXUS_USER \
+          -Dnexus.password=$NEXUS_PASS
+        """
     }
+}
+
 
     stage('Deploy to Tomcat') {
         withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', usernameVariable: 'TOMCAT_USER', passwordVariable: 'TOMCAT_PASS')]) {
