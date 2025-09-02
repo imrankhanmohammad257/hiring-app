@@ -48,7 +48,7 @@ pipeline {
                 slackSend(
                     channel: '#jenkins-integration',
                     color: 'good',
-                    message: "Hi Team, Jenkins Pipeline for *hiring-app* has finished successfully! ✅\nDeployed by: Imran Khan"
+                    message: "Hi Team, Jenkins Challenge Declarative pipeline job for *hiring-app* has finished successfully! ✅\nDeployed by: Imran Khan"
                 )
             }
         }
