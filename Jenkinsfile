@@ -28,14 +28,19 @@ node {
 
 
     stage('Deploy to Tomcat') {
-        withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', usernameVariable: 'TOMCAT_USER', passwordVariable: 'TOMCAT_PASS')]) {
-            sh '''
-            curl -u $TOMCAT_USER:$TOMCAT_PASS \
-                 -T target/hiring.war \
-                 http://54.145.142.96:8080/manager/text/deploy?path=/hiring&update=true
-            '''
-        }
+    withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', usernameVariable: 'TOMCAT_USER', passwordVariable: 'TOMCAT_PASS')]) {
+        sh '''
+        # First undeploy the old app
+        curl -u $TOMCAT_USER:$TOMCAT_PASS "http://54.87.222.232:8080/manager/text/undeploy?path=/hiring"
+
+        # Now deploy the new WAR
+        curl -u $TOMCAT_USER:$TOMCAT_PASS \
+             -T target/hiring.war \
+             "http://54.87.222.232:8080/manager/text/deploy?path=/hiring&update=true"
+        '''
     }
+}
+
 
     stage('Slack Notification') {
         slackSend(
