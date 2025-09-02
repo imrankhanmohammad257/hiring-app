@@ -74,7 +74,7 @@
     </style>
 </head>
 <body>
-    <h1>Welcome to Techie Horizon 🚀</h1>
+    <h1>Welcome to Techie Horizon </h1>
     <h2>Enter the World of DevOps</h2>
     <button class="btn">Get Started</button>
 </body>
