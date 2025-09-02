@@ -1,11 +1,5 @@
 pipeline {
     agent any
-    environment {
-        NEXUS_USER = 'admin'
-        NEXUS_PASS = 'admin123'
-        TOMCAT_USER = 'deployer'
-        TOMCAT_PASS = 'deployer'
-    }
     stages {
         stage('Checkout SCM') {
             steps {
@@ -43,7 +37,7 @@ pipeline {
                 }
             }
         }
-        stage('Slack Notification') {  // <-- Moved inside stages
+        stage('Slack Notification') {
             steps {
                 slackSend(
                     channel: '#jenkins-integration',
