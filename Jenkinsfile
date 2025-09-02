@@ -1,28 +1,21 @@
 pipeline {
     agent any
-
     environment {
-        SONARQUBE = 'SonarQube'
-        SLACK_CHANNEL = '#jenkins-integration'
-        PATH = "/usr/lib/jvm/java-17-openjdk/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+        NEXUS_USER = 'admin'
+        NEXUS_PASS = 'admin123'
     }
-
     stages {
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
-                git branch: 'main', url: 'https://github.com/imrankhanmohammad257/hiring-app.git'
+                git url: 'https://github.com/imrankhanmohammad257/hiring-app.git', branch: 'main'
             }
         }
-
         stage('Build') {
             steps {
-                script {
-                    def mvnHome = tool name: 'Maven-3.8.4', type: 'maven'
-                    sh "${mvnHome}/bin/mvn clean package -DskipTests"
-                }
+                tool name: 'Maven-3.8.4', type: 'maven'
+                sh 'mvn clean package -DskipTests'
             }
         }
-
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
@@ -30,29 +23,18 @@ pipeline {
                 }
             }
         }
-
         stage('Deploy to Nexus') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'nexus-creds', // Jenkins credentials ID
-                    usernameVariable: 'NEXUS_USER',
-                    passwordVariable: 'NEXUS_PASS'
-                )]) {
-                    sh 'mvn clean deploy -DskipTests'
-                }
+                sh '''
+                mvn clean deploy -DskipTests \
+                -Dnexus.username=$NEXUS_USER -Dnexus.password=$NEXUS_PASS
+                '''
             }
         }
-    } // <-- closes stages block
-
+    }
     post {
-        success {
-            slackSend(channel: env.SLACK_CHANNEL, color: 'good', message: "✅ Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' succeeded. Build URL: ${env.BUILD_URL}")
-        }
-        failure {
-            slackSend(channel: env.SLACK_CHANNEL, color: 'danger', message: "❌ Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' failed. Build URL: ${env.BUILD_URL}")
-        }
         always {
-            echo "Pipeline finished"
+            echo 'Pipeline finished'
         }
     }
 }
