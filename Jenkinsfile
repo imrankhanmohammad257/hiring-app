@@ -23,14 +23,12 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to Nexus') {
-            steps {
-                sh '''
-                mvn clean deploy -DskipTests \
-                -Dnexus.username=$NEXUS_USER -Dnexus.password=$NEXUS_PASS
-                '''
-            }
-        }
+       stage('Deploy to Nexus') {
+    steps {
+        sh 'mvn clean deploy -DskipTests --settings /var/lib/jenkins/.m2/settings.xml'
+    }
+}
+
     }
     post {
         always {
