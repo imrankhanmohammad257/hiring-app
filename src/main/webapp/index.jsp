@@ -1,9 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-
+<html>
 <body>
-    <h1>Welcome to Techie Horizon</h1>
-    <p>Your hub for tech learning and innovation</p>
-    <a href="#" class="button">Get Started</a>
+<h2 style="color: green">Welcome to Techie Horizon</h2>
 </body>
 </html>
