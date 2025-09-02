@@ -34,12 +34,18 @@ pipeline {
 
         
 
-        stage('Deploy to Nexus') {
-            steps {
-                sh 'mvn clean deploy -DskipTests'
-            }
+       stage('Deploy to Nexus') {
+    steps {
+        withCredentials([usernamePassword(
+            credentialsId: 'nexus-creds', // your Jenkins credentials ID
+            usernameVariable: 'NEXUS_USER',
+            passwordVariable: 'NEXUS_PASS'
+        )]) {
+            sh 'mvn clean deploy -DskipTests'
         }
     }
+}
+
 
     post {
         success {
