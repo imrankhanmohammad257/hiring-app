@@ -1,58 +1,51 @@
-pipeline {
-    agent any
-
-    environment {
-        MAVEN_HOME = "/usr/share/maven"
+node {
+    stage('Checkout SCM') {
+        git branch: 'main',
+            url: 'https://github.com/imrankhanmohammad257/hiring-app.git'
     }
 
-    stages {
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main', url: 'https://github.com/your-org/simplecustomerapp.git'
-            }
-        }
+    stage('Build') {
+        def mvnHome = tool name: 'Maven-3.8.4', type: 'maven'
+        sh "${mvnHome}/bin/mvn clean package -DskipTests"
+    }
 
-        stage('Build with Maven') {
-            steps {
-                sh 'mvn clean package -DskipTests'
-            }
+    stage('SonarQube Analysis') {
+        withSonarQubeEnv('SonarQube') {
+            sh "${mvnHome}/bin/mvn sonar:sonar -DskipTests"
         }
+    }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh 'mvn sonar:sonar -DskipTests'
-                }
-            }
-        }
+    stage('Deploy to Nexus') {
+        withCredentials([usernamePassword(credentialsId: 'nexus-creds',
+                                         usernameVariable: 'NEXUS_USER',
+                                         passwordVariable: 'NEXUS_PASS')]) {
+            sh '''
+                # Ensure Maven settings.xml contains credentials
+                sed -i "s|<username>.*</username>|<username>$NEXUS_USER</username>|" /var/lib/jenkins/.m2/settings.xml
+                sed -i "s|<password>.*</password>|<password>$NEXUS_PASS</password>|" /var/lib/jenkins/.m2/settings.xml
 
-        stage('Deploy to Nexus') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'nexus-creds',
-                                                 usernameVariable: 'NEXUS_USER',
-                                                 passwordVariable: 'NEXUS_PASS')]) {
-                    sh '''
-                        cd $WORKSPACE
-                        mvn clean deploy -DskipTests \
-                          --settings /var/lib/jenkins/.m2/settings.xml
-                    '''
-                }
-            }
+                mvn clean deploy -DskipTests --settings /var/lib/jenkins/.m2/settings.xml
+            '''
         }
+    }
 
-        stage('Deploy to Tomcat') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'tomcat-creds',
-                                                 usernameVariable: 'TOMCAT_USER',
-                                                 passwordVariable: 'TOMCAT_PASS')]) {
-                    sh '''
-                        WAR_FILE=$(ls target/*.war | head -n 1)
-                        curl -u $TOMCAT_USER:$TOMCAT_PASS \
-                             --upload-file $WAR_FILE \
-                             "http://54.145.142.96:8080/manager/text/deploy?path=/simplecustomerapp&update=true"
-                    '''
-                }
-            }
+    stage('Deploy to Tomcat') {
+        withCredentials([usernamePassword(credentialsId: 'tomcat-credentials',
+                                         usernameVariable: 'TOMCAT_USER',
+                                         passwordVariable: 'TOMCAT_PASS')]) {
+            sh '''
+                curl -u $TOMCAT_USER:$TOMCAT_PASS \
+                     -T target/hiring.war \
+                     "http://54.145.142.96:8080/manager/text/deploy?path=/hiring&update=true"
+            '''
         }
+    }
+
+    stage('Slack Notification') {
+        slackSend(
+            channel: '#jenkins-integration',
+            color: 'good',
+            message: "Hi Team, Jenkins Scripted pipeline job for *hiring-app* finished successfully! ✅\nDeployed by: Imran Khan"
+        )
     }
 }
