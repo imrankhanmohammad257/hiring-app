@@ -7,7 +7,7 @@ node {
     stage('Build') {
         def mvnHome = tool name: 'Maven-3.8.4', type: 'maven'
         // Ensure no old target directory blocks the build
-        sh 'rm -rf target'
+        sh 'sudo rm -rf target'
         sh "${mvnHome}/bin/mvn clean package -DskipTests"
     }
 
