@@ -50,4 +50,15 @@ pipeline {
             echo 'Pipeline finished'
         }
     }
+
+    stage('Slack Notification') {
+    steps {
+        slackSend(
+            channel: '#jenkins-integration',
+            color: 'good', // 'good' = green, 'danger' = red
+            message: "Hi Team, Jenkins Pipeline for *hiring-app* has finished successfully! ✅\nDeployed by: Imran Khan"
+        )
+    }
+}
+
 }
