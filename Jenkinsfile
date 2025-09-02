@@ -37,6 +37,17 @@ pipeline {
                 }
             }
         }
+
+        stage('Slack Notification') {
+    steps {
+        slackSend(
+            channel: '#jenkins-integration',
+            color: 'good',
+            message: "Hi Team, Jenkins Challenge Declarative pipeline job for *hiring-app* has finished successfully! ✅\nDeployed by: Imran Khan"
+        )
+    }
+}
+
         
     }
     post {
