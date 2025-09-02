@@ -3,6 +3,8 @@ pipeline {
     environment {
         NEXUS_USER = 'admin'
         NEXUS_PASS = 'admin123'
+        TOMCAT_USER = 'deployer'
+        TOMCAT_PASS = 'deployer'
     }
     stages {
         stage('Checkout SCM') {
@@ -30,35 +32,30 @@ pipeline {
                 }
             }
         }
-
         stage('Deploy to Tomcat') {
-    steps {
-        withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', usernameVariable: 'TOMCAT_USER', passwordVariable: 'TOMCAT_PASS')]) {
-            sh '''
-            curl -u $TOMCAT_USER:$TOMCAT_PASS \
-                 -T target/hiring.war \
-                 http://54.145.142.96:8080/manager/text/deploy?path=/hiring&update=true
-            '''
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', usernameVariable: 'TOMCAT_USER', passwordVariable: 'TOMCAT_PASS')]) {
+                    sh '''
+                    curl -u $TOMCAT_USER:$TOMCAT_PASS \
+                         -T target/hiring.war \
+                         http://54.145.142.96:8080/manager/text/deploy?path=/hiring&update=true
+                    '''
+                }
+            }
         }
-    }
-}
-
-
+        stage('Slack Notification') {  // <-- Moved inside stages
+            steps {
+                slackSend(
+                    channel: '#jenkins-integration',
+                    color: 'good',
+                    message: "Hi Team, Jenkins Pipeline for *hiring-app* has finished successfully! ✅\nDeployed by: Imran Khan"
+                )
+            }
+        }
     }
     post {
         always {
             echo 'Pipeline finished'
         }
     }
-
-    stage('Slack Notification') {
-    steps {
-        slackSend(
-            channel: '#jenkins-integration',
-            color: 'good', // 'good' = green, 'danger' = red
-            message: "Hi Team, Jenkins Pipeline for *hiring-app* has finished successfully! ✅\nDeployed by: Imran Khan"
-        )
-    }
-}
-
 }
