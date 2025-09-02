@@ -32,16 +32,17 @@ pipeline {
         }
 
         stage('Deploy to Tomcat') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', usernameVariable: 'TMCAT_USER', passwordVariable: 'TOMCAT_PASS')]) {
-                    sh '''
-                    curl -u $TOMCAT_USER:$TOMCAT_PASS \
-                         -T target/hiring.war \
-                         http://54.145.142.96:8080/manager/text/deploy?path=/hiring&update=true
-                    '''
-                }
-            }
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', usernameVariable: 'TOMCAT_USER', passwordVariable: 'TOMCAT_PASS')]) {
+            sh '''
+            curl -u $TOMCAT_USER:$TOMCAT_PASS \
+                 -T target/hiring.war \
+                 http://54.145.142.96:8080/manager/text/deploy?path=/hiring&update=true
+            '''
         }
+    }
+}
+
 
     }
     post {
