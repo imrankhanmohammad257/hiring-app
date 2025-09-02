@@ -15,14 +15,20 @@ node {
         }
     }
 
-    stage('Deploy to Nexus') {
+  stage('Deploy to Nexus') {
+    steps {
         withCredentials([usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
             sh '''
-            mvn clean deploy -DskipTests \
-                --settings /var/lib/jenkins/.m2/settings.xml
+            # Update Maven settings.xml with creds
+            sed -i "s|<username>.*</username>|<username>$NEXUS_USER</username>|" /var/lib/jenkins/.m2/settings.xml
+            sed -i "s|<password>.*</password>|<password>$NEXUS_PASS</password>|" /var/lib/jenkins/.m2/settings.xml
+
+            mvn clean deploy -DskipTests --settings /var/lib/jenkins/.m2/settings.xml
             '''
         }
     }
+}
+
 
     stage('Deploy to Tomcat') {
         withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', usernameVariable: 'TOMCAT_USER', passwordVariable: 'TOMCAT_PASS')]) {
