@@ -14,15 +14,14 @@ pipeline {
             }
         }
 
-      stage('Build') {
-    steps {
-        script {
-            def mvnHome = tool name: 'Maven-3.8.4', type: 'maven'
-            sh "${mvnHome}/bin/mvn clean package -DskipTests"
+        stage('Build') {
+            steps {
+                script {
+                    def mvnHome = tool name: 'Maven-3.8.4', type: 'maven'
+                    sh "${mvnHome}/bin/mvn clean package -DskipTests"
+                }
+            }
         }
-    }
-}
-
 
         stage('SonarQube Analysis') {
             steps {
@@ -32,20 +31,18 @@ pipeline {
             }
         }
 
-        
-
-       stage('Deploy to Nexus') {
-    steps {
-        withCredentials([usernamePassword(
-            credentialsId: 'nexus-creds', // your Jenkins credentials ID
-            usernameVariable: 'NEXUS_USER',
-            passwordVariable: 'NEXUS_PASS'
-        )]) {
-            sh 'mvn clean deploy -DskipTests'
+        stage('Deploy to Nexus') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'nexus-creds', // Jenkins credentials ID
+                    usernameVariable: 'NEXUS_USER',
+                    passwordVariable: 'NEXUS_PASS'
+                )]) {
+                    sh 'mvn clean deploy -DskipTests'
+                }
+            }
         }
-    }
-}
-
+    } // <-- closes stages block
 
     post {
         success {
