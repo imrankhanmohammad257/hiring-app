@@ -76,7 +76,7 @@
 <body>
     <h1>Welcome to Techie Horizon </h1>
     <h2>Enter the World of DevOps</h2>
-<h1>Its a JENKINS multi stage pipeline job</h1>
+<h1>Its a JENKINS , PARALLEL stage pipeline job</h1>
     <button class="btn">Get Started</button>
 </body>
 </html>
