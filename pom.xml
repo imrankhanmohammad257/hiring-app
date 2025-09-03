@@ -34,11 +34,11 @@
 
   <distributionManagement>
     <repository>
-      <id>nexus-releases</id>
+      <id>releases</id>
       <url>http://54.163.17.174:8081/repository/releases/</url>
     </repository>
     <snapshotRepository>
-      <id>nexus-snapshots</id>
+      <id>snapshots</id>
       <url>http://54.163.17.174:8081/repository/snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
