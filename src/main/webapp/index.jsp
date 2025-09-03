@@ -76,6 +76,7 @@
 <body>
     <h1>Welcome to Techie Horizon </h1>
     <h2>Enter the World of DevOps</h2>
+<h3>Its a multi stage pipeline job</h3>
     <button class="btn">Get Started</button>
 </body>
 </html>
