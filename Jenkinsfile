@@ -19,6 +19,6 @@ node {
 
    
     stage('Slack Notification') {
-        notifySlack("SUCCESS")   // ✅ from library
+        slack("SUCCESS")   // ✅ from library
     }
 }
