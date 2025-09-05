@@ -7,6 +7,6 @@ def call(String status = "SUCCESS") {
         color: color,
         message: """🚀 Jenkins pipeline update:
 hiring-app Job finished with status: *${status}* ${emoji}
-(From Shared Library)"""
+(From Jenkins Shared Library)"""
     )
 }
