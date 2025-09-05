@@ -16,29 +16,7 @@ node {
         }
     }
 
-    stage('Deploy to Nexus') {
-    withCredentials([usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-        sh """
-        mvn clean deploy -DskipTests \
-          -Dnexus.username=$NEXUS_USER \
-          -Dnexus.password=$NEXUS_PASS
-        """
-    }
-}
-
-
-    stage('Deploy to Tomcat') {
-    withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', usernameVariable: 'TOMCAT_USER', passwordVariable: 'TOMCAT_PASS')]) {
-        sh '''
-        # First undeploy the old app
-        curl -u $TOMCAT_USER:$TOMCAT_PASS "http://54.87.222.232:8080/manager/text/undeploy?path=/hiring"
-
-        # Now deploy the new WAR
-        curl -u $TOMCAT_USER:$TOMCAT_PASS \
-             -T target/hiring.war \
-             "http://54.87.222.232:8080/manager/text/deploy?path=/hiring&update=true"
-        '''
-    }
+  
 }
 
 
