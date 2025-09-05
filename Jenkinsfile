@@ -18,9 +18,9 @@ node {
         }
     }
 stage('Hai') {
-    steps {
+    
         helloworld()
-    }
+    
 }
   
 
