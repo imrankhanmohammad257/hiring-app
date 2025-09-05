@@ -5,6 +5,8 @@ def call(String status = "SUCCESS") {
     slackSend(
         channel: '#jenkins-integration',
         color: color,
-        message: "Hi Team, Jenkins job for *hiring-app* finished with status: ${status} ${emoji}\nDeployed by: Imran Khan"
+        message: "🚀 Jenkins pipeline update:
+✅ *Build stage* and ✅ *Slack notification stage* have been moved to the *Jenkins Shared Library*.
+Now the Jenkinsfile is clean and reusable! 🎉,   Jenkins job for *hiring-app* finished with status: ${status} ${emoji}\nDeployed by: Imran Khan"
     )
 }
