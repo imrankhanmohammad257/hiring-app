@@ -1,3 +1,5 @@
+@Library("imran-shared-library") _    
+
 node {
     stage('Checkout SCM') {
         git branch: 'main',
@@ -15,7 +17,11 @@ node {
             sh "${mvnHome}/bin/mvn sonar:sonar"
         }
     }
-
+stage('Hai') {
+    steps {
+        helloworld()
+    }
+}
   
 
 
