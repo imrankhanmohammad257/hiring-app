@@ -17,7 +17,7 @@ node {
             sh "${mvnHome}/bin/mvn sonar:sonar"
         }
     }
-stage('Hai') {
+stage('Greeting') {
     
         helloworld()
     
