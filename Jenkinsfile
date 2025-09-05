@@ -7,8 +7,7 @@ node {
     }
 
     stage('Build') {
-        def mvnHome = tool name: 'Maven-3.8.4', type: 'maven'
-        sh "${mvnHome}/bin/mvn clean package -DskipTests"
+        buildApp()   // ✅ from library
     }
 
     stage('SonarQube Analysis') {
@@ -17,19 +16,12 @@ node {
             sh "${mvnHome}/bin/mvn sonar:sonar"
         }
     }
-stage('Greeting') {
-    
-        helloworld()
-    
-}
-  
 
+    stage('Hai') {
+        helloworld()
+    }
 
     stage('Slack Notification') {
-        slackSend(
-            channel: '#jenkins-integration',
-            color: 'good',
-            message: "Hi Team, Jenkins Scripted pipeline job for *hiring-app* has finished successfully! ✅\nDeployed by: Imran Khan"
-        )
+        notifySlack("SUCCESS")   // ✅ from library
     }
 }
