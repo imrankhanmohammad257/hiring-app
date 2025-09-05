@@ -17,10 +17,7 @@ node {
         }
     }
 
-    stage('Hai') {
-        helloworld()
-    }
-
+   
     stage('Slack Notification') {
         notifySlack("SUCCESS")   // ✅ from library
     }
