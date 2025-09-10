@@ -1,0 +1,65 @@
+pipeline {
+  agent any
+
+  environment {
+    // Optional: force non-interactive terraform
+    TF_IN_AUTOMATION = '1'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        // checkout repo (infra + app)
+        git url: 'https://github.com/imrankhanmohammad257/hiring-app.git', branch: 'main'
+      }
+    }
+
+    stage('Terraform Init & Validate') {
+      steps {
+        // run terraform in infra folder (remove dir(...) if TF files at repo root)
+        dir('infra') {
+          sh 'terraform -version'
+          sh 'terraform init -input=false'
+          sh 'terraform validate'
+        }
+      }
+    }
+
+    stage('Terraform Plan') {
+      steps {
+        dir('infra') {
+          // save plan artifact so apply uses exact plan
+          sh 'terraform plan -no-color -out=tfplan'
+          archiveArtifacts artifacts: 'infra/tfplan', allowEmptyArchive: true
+        }
+      }
+    }
+
+    stage('Approve Terraform Apply') {
+      steps {
+        input message: 'Apply Terraform changes to environment?'
+      }
+    }
+
+    stage('Terraform Apply') {
+      steps {
+        dir('infra') {
+          sh 'terraform apply -auto-approve tfplan'
+        }
+      }
+    }
+
+    stage('Maven Compile') {
+      steps {
+        // build the Java app
+        sh 'mvn -B -DskipTests clean package'
+      }
+    }
+  }
+
+  post {
+    failure {
+      echo "Build failed — check console for Terraform/Maven errors."
+    }
+  }
+}
