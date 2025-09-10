@@ -17,16 +17,15 @@ pipeline {
     }
 
     stage('Terraform Init & Plan') {
-      steps {
-        dir('infra') {
-          sh '''
-            terraform init -input=false
-            terraform validate
-            terraform plan -out=tfplan
-          '''
-        }
-      }
-    }
+  steps {
+    sh '''
+      terraform init -input=false
+      terraform validate
+      terraform plan -out=tfplan
+    '''
+  }
+}
+
 
     stage('Approve Apply') {
       steps {
