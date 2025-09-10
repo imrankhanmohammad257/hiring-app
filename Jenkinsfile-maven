@@ -1,62 +1,62 @@
 pipeline {
-  agent any
+    agent any
 
-  tools {
-    maven "Maven3"
-  }
-
-  parameters {
-    string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'Branch to build')
-    booleanParam(name: 'SKIP_TESTS', defaultValue: true, description: 'Skip Maven tests')
-  }
-
-  environment {
-    TF_IN_AUTOMATION = '1'
-  }
-
-  stages {
-    stage('Checkout') {
-      steps {
-        git url: 'https://github.com/betawins/hiring-app.git', branch: "${params.GIT_BRANCH}"
-      }
+    parameters {
+        string(name: 'BRANCH', defaultValue: 'main', description: 'Git branch to build')
+        booleanParam(name: 'SKIP_TESTS', defaultValue: true, description: 'Skip Maven tests?')
     }
 
-    stage('Terraform Init & Plan') {
-      steps {
-        sh 'terraform init -input=false'
-        sh 'terraform validate'
-        sh 'terraform plan -out=tfplan'
-      }
+    tools {
+        maven "Maven3"   // Make sure Maven3 is configured in Jenkins global tools
     }
 
-    stage('Approve Apply') {
-      steps {
-        input message: 'Proceed with Terraform Apply?'
-      }
+    environment {
+        TF_IN_AUTOMATION = '1'
     }
 
-    stage('Terraform Apply') {
-      steps {
-        sh 'terraform apply -auto-approve tfplan || terraform apply -auto-approve'
-      }
-    }
-
-    stage('Maven Build') {
-      steps {
-        script {
-          def skip = params.SKIP_TESTS ? "-DskipTests" : ""
-          sh "mvn -B clean package ${skip}"
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/betawins/hiring-app.git', branch: "${params.BRANCH}"
+            }
         }
-      }
-    }
-  }
 
-  post {
-    failure {
-      echo "❌ Pipeline failed. Check logs."
+        stage('Terraform Init & Plan') {
+            steps {
+                sh 'terraform init -input=false'
+                sh 'terraform validate'
+                sh 'terraform plan -out=tfplan'
+            }
+        }
+
+        stage('Approve Apply') {
+            steps {
+                input message: 'Proceed with Terraform Apply?'
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                sh 'terraform apply -auto-approve tfplan || terraform apply -auto-approve'
+            }
+        }
+
+        stage('Maven Build') {
+            steps {
+                script {
+                    def skip = params.SKIP_TESTS ? "-DskipTests" : ""
+                    sh "mvn -B clean package ${skip}"
+                }
+            }
+        }
     }
-    success {
-      echo "✅ Pipeline succeeded!"
+
+    post {
+        failure {
+            echo "❌ Pipeline failed. Check logs."
+        }
+        success {
+            echo "✅ Pipeline succeeded!"
+        }
     }
-  }
 }
