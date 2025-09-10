@@ -1,13 +1,14 @@
 pipeline {
     agent any
 
+    // Parameters for file name and content
     parameters {
-        string(name: 'BRANCH', defaultValue: 'main', description: 'Git branch to build')
-        booleanParam(name: 'SKIP_TESTS', defaultValue: true, description: 'Skip Maven tests?')
+        string(name: 'FILENAME', defaultValue: 'apple.txt', description: 'Terraform file name')
+        string(name: 'CONTENT', defaultValue: 'royal gala is one type of apple', description: 'Content of the file')
     }
 
     tools {
-        maven "Maven3"   // Make sure Maven3 is configured in Jenkins global tools
+        maven "Maven3" // Ensure Maven3 is configured in Jenkins global tools
     }
 
     environment {
@@ -15,17 +16,20 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/imrankhanmohammad257/hiring-app.git', branch: "${params.BRANCH}"
+                git url: 'https://github.com/imrankhanmohammad257/hiring-app.git', branch: 'main'
+                sh 'ls -l' // Optional: verify files exist
             }
         }
 
         stage('Terraform Init & Plan') {
             steps {
-                sh 'terraform init -input=false'
-                sh 'terraform validate'
-                sh 'terraform plan -out=tfplan'
+                // Pass parameters to Terraform using -var
+                sh "terraform init -input=false"
+                sh "terraform validate"
+                sh "terraform plan -out=tfplan -var filename=${params.FILENAME} -var content='${params.CONTENT}'"
             }
         }
 
@@ -37,26 +41,24 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                sh 'terraform apply -auto-approve tfplan || terraform apply -auto-approve'
+                // Apply using plan file
+                sh "terraform apply -auto-approve tfplan || terraform apply -auto-approve -var filename=${params.FILENAME} -var content='${params.CONTENT}'"
             }
         }
 
         stage('Maven Build') {
             steps {
-                script {
-                    def skip = params.SKIP_TESTS ? "-DskipTests" : ""
-                    sh "mvn -B clean package ${skip}"
-                }
+                sh 'mvn -B -DskipTests clean package'
             }
         }
     }
 
     post {
-        failure {
-            echo "❌ Pipeline failed. Check logs."
-        }
         success {
             echo "✅ Pipeline succeeded!"
+        }
+        failure {
+            echo "❌ Pipeline failed. Check logs."
         }
     }
 }
