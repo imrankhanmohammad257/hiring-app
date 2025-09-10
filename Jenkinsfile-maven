@@ -1,43 +1,36 @@
 pipeline {
   agent any
 
+  tools {
+    maven 'Maven3'   // must match name in Jenkins Global Tool Configuration
+  }
+
   environment {
-    // Optional: force non-interactive terraform
-    TF_IN_AUTOMATION = '1'
+    TF_IN_AUTOMATION = '1'   // avoid interactive terraform prompts
   }
 
   stages {
     stage('Checkout') {
       steps {
-        // checkout repo (infra + app)
         git url: 'https://github.com/imrankhanmohammad257/hiring-app.git', branch: 'main'
       }
     }
 
-    stage('Terraform Init & Validate') {
+    stage('Terraform Init & Plan') {
       steps {
-        // run terraform in infra folder (remove dir(...) if TF files at repo root)
         dir('infra') {
-          sh 'terraform -version'
-          sh 'terraform init -input=false'
-          sh 'terraform validate'
+          sh '''
+            terraform init -input=false
+            terraform validate
+            terraform plan -out=tfplan
+          '''
         }
       }
     }
 
-    stage('Terraform Plan') {
+    stage('Approve Apply') {
       steps {
-        dir('infra') {
-          // save plan artifact so apply uses exact plan
-          sh 'terraform plan -no-color -out=tfplan'
-          archiveArtifacts artifacts: 'infra/tfplan', allowEmptyArchive: true
-        }
-      }
-    }
-
-    stage('Approve Terraform Apply') {
-      steps {
-        input message: 'Apply Terraform changes to environment?'
+        input message: 'Proceed with Terraform Apply?'
       }
     }
 
@@ -49,17 +42,19 @@ pipeline {
       }
     }
 
-    stage('Maven Compile') {
+    stage('Maven Build') {
       steps {
-        // build the Java app
-        sh 'mvn -B -DskipTests clean package'
+        sh 'mvn clean package -DskipTests'
       }
     }
   }
 
   post {
+    success {
+      echo "✅ Terraform + Maven pipeline executed successfully."
+    }
     failure {
-      echo "Build failed — check console for Terraform/Maven errors."
+      echo "❌ Pipeline failed. Please check logs."
     }
   }
 }
