@@ -2,8 +2,12 @@ pipeline {
   agent any
 
   tools {
-    maven "Maven3"        // Make sure Maven3 is configured in Jenkins global tools
-    
+    maven "Maven3"
+  }
+
+  parameters {
+    string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'Branch to build')
+    booleanParam(name: 'SKIP_TESTS', defaultValue: true, description: 'Skip Maven tests')
   }
 
   environment {
@@ -13,7 +17,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        git url: 'https://github.com/imrankhanmohammad257/hiring-app.git', branch: 'main'
+        git url: 'https://github.com/betawins/hiring-app.git', branch: "${params.GIT_BRANCH}"
       }
     }
 
@@ -33,21 +37,23 @@ pipeline {
 
     stage('Terraform Apply') {
       steps {
-        // try with plan file, fallback to direct apply if not found
         sh 'terraform apply -auto-approve tfplan || terraform apply -auto-approve'
       }
     }
 
     stage('Maven Build') {
       steps {
-        sh 'mvn -B -DskipTests clean package'
+        script {
+          def skip = params.SKIP_TESTS ? "-DskipTests" : ""
+          sh "mvn -B clean package ${skip}"
+        }
       }
     }
   }
 
   post {
     failure {
-      echo "❌ Pipeline failed. Please check logs."
+      echo "❌ Pipeline failed. Check logs."
     }
     success {
       echo "✅ Pipeline succeeded!"
