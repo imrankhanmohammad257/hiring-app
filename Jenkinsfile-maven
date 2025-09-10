@@ -2,11 +2,12 @@ pipeline {
   agent any
 
   tools {
-    maven 'Maven3'   // must match name in Jenkins Global Tool Configuration
+    maven "Maven3"        // Make sure Maven3 is configured in Jenkins global tools
+    terraform "Terraform" // If you installed Terraform via Jenkins tool config
   }
 
   environment {
-    TF_IN_AUTOMATION = '1'   // avoid interactive terraform prompts
+    TF_IN_AUTOMATION = '1'
   }
 
   stages {
@@ -17,15 +18,12 @@ pipeline {
     }
 
     stage('Terraform Init & Plan') {
-  steps {
-    sh '''
-      terraform init -input=false
-      terraform validate
-      terraform plan -out=tfplan
-    '''
-  }
-}
-
+      steps {
+        sh 'terraform init -input=false'
+        sh 'terraform validate'
+        sh 'terraform plan -out=tfplan'
+      }
+    }
 
     stage('Approve Apply') {
       steps {
@@ -35,25 +33,24 @@ pipeline {
 
     stage('Terraform Apply') {
       steps {
-        dir('infra') {
-          sh 'terraform apply -auto-approve'
-        }
+        // try with plan file, fallback to direct apply if not found
+        sh 'terraform apply -auto-approve tfplan || terraform apply -auto-approve'
       }
     }
 
     stage('Maven Build') {
       steps {
-        sh 'mvn clean package -DskipTests'
+        sh 'mvn -B -DskipTests clean package'
       }
     }
   }
 
   post {
-    success {
-      echo "✅ Terraform + Maven pipeline executed successfully."
-    }
     failure {
       echo "❌ Pipeline failed. Please check logs."
+    }
+    success {
+      echo "✅ Pipeline succeeded!"
     }
   }
 }
