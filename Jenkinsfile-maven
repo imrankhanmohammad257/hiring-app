@@ -17,7 +17,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/betawins/hiring-app.git', branch: "${params.BRANCH}"
+                git url: 'https://github.com/imrankhanmohammad257/hiring-app.git', branch: "${params.BRANCH}"
             }
         }
 
