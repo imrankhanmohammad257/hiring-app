@@ -1,3 +1,3 @@
-filename = "apple.txt"
+filename = "fruits.txt"
 content  = "royal gala is one type of apple"
 prefix   = "Mr."
