@@ -1,14 +1,13 @@
 pipeline {
     agent any
 
-    // Parameters for file name and content
     parameters {
         string(name: 'FILENAME', defaultValue: 'apple.txt', description: 'Terraform file name')
         string(name: 'CONTENT', defaultValue: 'royal gala is one type of apple', description: 'Content of the file')
     }
 
     tools {
-        maven "Maven3" // Ensure Maven3 is configured in Jenkins global tools
+        maven "Maven3"
     }
 
     environment {
@@ -20,13 +19,12 @@ pipeline {
         stage('Checkout') {
             steps {
                 git url: 'https://github.com/imrankhanmohammad257/hiring-app.git', branch: 'main'
-                sh 'ls -l' // Optional: verify files exist
+                sh 'ls -l' // Optional: list files
             }
         }
 
         stage('Terraform Init & Plan') {
             steps {
-                // Pass parameters to Terraform using -var
                 sh "terraform init -input=false"
                 sh "terraform validate"
                 sh "terraform plan -out=tfplan -var filename=${params.FILENAME} -var content='${params.CONTENT}'"
@@ -41,7 +39,6 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                // Apply using plan file
                 sh "terraform apply -auto-approve tfplan || terraform apply -auto-approve -var filename=${params.FILENAME} -var content='${params.CONTENT}'"
             }
         }
