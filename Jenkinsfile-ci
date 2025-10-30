@@ -34,34 +34,31 @@ pipeline {
             }
         }
 
-       stage('Upload to Nexus') {
-    withCredentials([usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-        sh '''
-        mvn deploy -DskipTests \
-        -Dnexus.username=$NEXUS_USER \
-        -Dnexus.password=$NEXUS_PASS
-        '''
-    }
-}
-
+        stage('Upload to Nexus') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                    sh '''
+                    mvn deploy -DskipTests \
+                    -Dnexus.username=$NEXUS_USER \
+                    -Dnexus.password=$NEXUS_PASS
+                    '''
+                }
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh "docker build -t ${DOCKER_IMAGE}:latest ."
-                }
+                sh "docker build -t ${DOCKER_IMAGE}:latest ."
             }
         }
 
         stage('Push Docker Image to DockerHub') {
             steps {
-                script {
-                    sh """
-                        echo ${DOCKER_USER_PSW} | docker login -u ${DOCKER_USER_USR} --password-stdin
-                        docker tag ${DOCKER_IMAGE}:latest ${DOCKER_USER_USR}/${DOCKER_IMAGE}:latest
-                        docker push ${DOCKER_USER_USR}/${DOCKER_IMAGE}:latest
-                    """
-                }
+                sh '''
+                    echo $DOCKER_USER_PSW | docker login -u $DOCKER_USER_USR --password-stdin
+                    docker tag ${DOCKER_IMAGE}:latest $DOCKER_USER_USR/${DOCKER_IMAGE}:latest
+                    docker push $DOCKER_USER_USR/${DOCKER_IMAGE}:latest
+                '''
             }
         }
     }
